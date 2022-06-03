@@ -6,7 +6,29 @@ from django.utils.text import gettext_lazy as _
 User = get_user_model()
 
 
-class RegisterApiSerializer(serializers.ModelSerializer):
+class ManagerRegisterApiSerializer(serializers.ModelSerializer):
+    password_confirm = serializers.CharField(min_length=6, required=True, write_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password', 'password_confirm', 'company_name', 'description', 'profile_photo', )
+
+    def validate(self, attrs):
+        password_confirm = attrs.pop('password_confirm')
+        attrs['is_staff'] = True
+
+        if password_confirm != attrs.get('password'):
+            raise serializers.ValidationError('Passwords don\'t match!')
+        if not attrs.get('password').isalnum():
+            raise serializers.ValidationError('Password should contain numbers and chars')
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
+
+
+class CustomerRegisterApiSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(min_length=6, required=True, write_only=True)
 
     class Meta:
@@ -43,7 +65,6 @@ class LoginSerializer(TokenObtainPairSerializer):
             return attrs
         else:
             raise serializers.ValidationError('Email or password incorrect!')
-
 
 
 class CreateNewPasswordSerializer(serializers.Serializer):
@@ -100,3 +121,15 @@ class LogoutSerializer(serializers.Serializer):
             RefreshToken(self.token).blacklist()
         except TokenError:
             self.fail('bad_token')
+
+
+class SellerListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'company_name', 'profile_photo',)
+
+
+class SellerDetailedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'first_name', 'last_name', 'company_name', 'description', 'profile_photo',)

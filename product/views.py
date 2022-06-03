@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import generics, permissions
-from product.models import Product, Category, Comment, Likes
+from product.models import Product, Category, Review, StarredProducts, Likes
 from product.serializers import ProductSerializer, CategorySerializer
 from product import serializers
 
@@ -29,7 +29,7 @@ class ProductViewSet(ModelViewSet):
     pagination_class = StandardPaginationClass
 
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(owner=self.request.user)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -48,13 +48,30 @@ class ProductViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(['GET'], detail=True)
-    def comments(self, request, pk):
+    def reviews(self, request, pk):
         product = self.get_object()
         comments = product.comments.all()
-        serializer = serializers.CommentSerializer(comments, many=True)
+        serializer = serializers.ReviewSerializer(comments, many=True)
         return Response(serializer.data)
 
     @action(['POST'],detail=True)
+    def add_to_starred(self, request, pk):
+        product = self.get_object()
+        if request.user.starred.filter(product=product).exists():
+            return Response('You have already starred this product!', status=status.HTTP_400_BAD_REQUEST)
+        StarredProducts.objects.create(product=product, user=request.user)
+        return Response('You starred this product!', status=status.HTTP_201_CREATED)
+
+    @action(['POST'], detail=True)
+    def remove_from_starred(self, request, pk):
+        product = self.get_object()
+        if not request.user.starred.filter(product=product).exists():
+            return Response('You haven\'t starred this product yet!', status=status.HTTP_400_BAD_REQUEST)
+        request.user.starred.filter(product=product).delete()
+        return Response('Product successfully removed from your starred product list!',
+                        status=status.HTTP_204_NO_CONTENT)
+
+    @action(['POST'], detail=True)
     def add_to_liked(self, request, pk):
         product = self.get_object()
         if request.user.liked.filter(product=product).exists():
@@ -84,16 +101,25 @@ class CategoryView(generics.ListAPIView):
     serializer_class = serializers.CategorySerializer
 
 
-class CommentListCreateView(generics.ListCreateAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = serializers.CommentSerializer
+class ReviewListCreateView(generics.ListCreateAPIView):
+    queryset = Review.objects.all()
+    serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
         return serializer.save(owner=self.request.user)
 
 
-class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Comment.objects.all()
-    serializer_class = serializers.CommentSerializer
+class ReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = serializers.ReviewSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsAuthor,)
+
+
+class StarredProductListView(generics.ListAPIView):
+    serializer_class = serializers.StarredProductSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return StarredProducts.objects.filter(user=user)
+    pagination_class = StandardPaginationClass

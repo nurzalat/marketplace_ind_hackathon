@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 User = get_user_model()
+
 STATUS_CHOICES = (
     ('open', 'Open'),
     ('in_progress', 'Being processed'),

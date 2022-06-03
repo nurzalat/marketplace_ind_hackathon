@@ -1,3 +1,4 @@
+import generics as generics
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -23,11 +24,8 @@ class CartViewSet(ModelViewSet):
         if self.action in ('create',):
             return [permissions.IsAuthenticated()]
         # only owner of post can update/delete post/s
-        elif self.action in ('update', 'partial_update', 'destroy',):
-            return [IsOwner()]
-        # everyone can view posts
         else:
-            return [permissions.AllowAny()]
+            return [IsOwner()]
 
     def destroy(self, request, *args, **kwargs):
         # instance = self.get_object()

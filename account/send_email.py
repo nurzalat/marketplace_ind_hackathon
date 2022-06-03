@@ -8,7 +8,7 @@ def send_confirmation_email(user):
     send_mail(
         'Hi, please activate your account!',
         f'Follow the link to activate: {full_link}',
-        'shop_api@shop_api.com',
+        'account@marketeer.com',
         [to_email],
         fail_silently=False,
     )
@@ -20,7 +20,7 @@ def send_reset_passwor_email(user):
     send_mail(
         'Password reset',
         f'Your code: {code}',
-        'shop_api@shop_api.com',
+        'account@marketeer.com',
         [to_email],
         fail_silently=False,
     )
@@ -31,7 +31,7 @@ def send_order_notification(user, id):
     send_mail(
         'Order Notification',
         f'You have created an order: #{id}.\nShipping will take ~1 week.\nThanks for choosing us.',
-        'shop_api@shop_api.com',
+        'orders@marketeer.com',
         [to_email],
         fail_silently=False,
     )

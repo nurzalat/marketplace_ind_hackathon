@@ -1,6 +1,8 @@
 from django.contrib.auth.views import LogoutView
 from rest_framework import status, permissions
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
@@ -13,15 +15,46 @@ from .send_email import send_confirmation_email, send_reset_passwor_email
 User = get_user_model()
 
 
-class RegistrationApiView(APIView):
+class StandardPaginationClass(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
+class SellerListView(ListAPIView):
+    queryset = User.objects.filter(is_staff=True, is_superuser=False)
+    serializer_class = serializers.SellerListSerializer
+    pagination_class = StandardPaginationClass
+
+
+class SellerDetailView(RetrieveAPIView):
+    queryset = User.objects.filter(is_staff=True, is_superuser=False)
+    serializer_class = serializers.SellerDetailedSerializer
+
+
+class SellerRegistrationApiView(APIView):
     def post(self, request):
-        serializer = serializers.RegisterApiSerializer(data=request.data)
+        serializer = serializers.ManagerRegisterApiSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             if user:
                 send_confirmation_email(user)
                 # send_activation_email.delay(user.email)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response('Check your mail, you will receive email with link for activation of your account.\n'
+                            'Thanks for choosing us!', status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomerRegistrationApiView(APIView):
+    def post(self, request):
+        serializer = serializers.CustomerRegisterApiSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            user = serializer.save()
+            if user:
+                send_confirmation_email(user)
+                # send_activation_email.delay(user.email)
+            return Response('Check your mail, you will receive email with link for activation of your account.\n'
+                            'Thanks for choosing us!', status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 

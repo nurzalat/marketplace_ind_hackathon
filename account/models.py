@@ -38,8 +38,11 @@ class CustomUser(AbstractUser):
     password = models.CharField(max_length=100)
     activation_code = models.CharField(max_length=100, blank=True)
     username = models.CharField(max_length=255, blank=True)
-    first_name = models.CharField(max_length=100, blank=True)
-    last_name = models.CharField(max_length=100, blank=True)
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    company_name = models.CharField(max_length=255)
+    description = models.TextField()
+    profile_photo = models.ImageField(upload_to='profile_photos/', blank=True)
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
