@@ -36,6 +36,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('paypal/', include('paypal.standard.ipn.urls')),
     path('api/v1/account/', include('account.urls')),
     path('api/v1/product/', include('product.urls')),
     path('api/v1/cart/', include('cart.urls')),

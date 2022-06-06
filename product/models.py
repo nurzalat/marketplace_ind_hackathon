@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from account.tasks import send_prod_create_notif
 
 User = get_user_model()
 
@@ -29,7 +32,15 @@ class Product(models.Model):
     class Meta:
         ordering = ('id',)
 
-    def __str__(self): return f'{self.title} : {self.price}сом'
+    def __str__(self): return f'{self.title} : {self.price}'
+
+
+@receiver(post_save, sender=Product)
+def order_post_save(sender, instance, *args, **kwargs):
+    # send_order_notification(instance.user.email, instance.id)
+    print(instance.category.name)
+    send_prod_create_notif.delay(instance.owner.email, instance.id, instance.title, instance.price,
+                                 instance.description, instance.category.name)
 
 
 class Likes(models.Model):

@@ -65,7 +65,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.email')
+    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Review

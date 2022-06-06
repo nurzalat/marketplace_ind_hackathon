@@ -7,10 +7,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.views import TokenObtainPairView
-
 from . import serializers
 from .send_email import send_confirmation_email, send_reset_passwor_email
-# from .tasks import send_activation_email
+from .tasks import send_activation_email, send_reset_password_email
 
 User = get_user_model()
 
@@ -34,12 +33,12 @@ class SellerDetailView(RetrieveAPIView):
 
 class SellerRegistrationApiView(APIView):
     def post(self, request):
-        serializer = serializers.ManagerRegisterApiSerializer(data=request.data)
+        serializer = serializers.SellerRegisterApiSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             if user:
-                send_confirmation_email(user)
-                # send_activation_email.delay(user.email)
+                # send_confirmation_email(user)
+                send_activation_email.delay(user.email)
             return Response('Check your mail, you will receive email with link for activation of your account.\n'
                             'Thanks for choosing us!', status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -51,8 +50,8 @@ class CustomerRegistrationApiView(APIView):
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
             if user:
-                send_confirmation_email(user)
-                # send_activation_email.delay(user.email)
+                # send_confirmation_email(user)
+                send_activation_email.delay(user.email)
             return Response('Check your mail, you will receive email with link for activation of your account.\n'
                             'Thanks for choosing us!', status=status.HTTP_201_CREATED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -89,7 +88,8 @@ class ResetPasswordView(APIView):
             user = User.objects.get(email=serializer.data.get('email'))
             user.create_activation_code()
             user.save()
-            send_reset_passwor_email(user)
+            # send_reset_passwor_email(user)
+            send_reset_password_email.delay(user.email)
             return Response('Check your email')
 
 

@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from account.send_email import send_order_notification
+# from account.send_email import send_order_notification
+from account.tasks import send_order_notif
 from product.models import Product
 from django.dispatch import receiver
 from django.db.models.signals import post_save
@@ -9,7 +10,8 @@ from django.db.models.signals import post_save
 User = get_user_model()
 
 STATUS_CHOICES = (
-    ('open', 'Open'),
+    ('created', 'Created'),
+    ('paid', 'Open'),
     ('in_progress', 'Being processed'),
     ('closed', 'Closed'),
 )
@@ -24,7 +26,8 @@ class Order(models.Model):
 
 @receiver(post_save, sender=Order)
 def order_post_save(sender, instance, *args, **kwargs):
-    send_order_notification(instance.user, instance.id)
+    # send_order_notification(instance.user.email, instance.id)
+    send_order_notif.delay(instance.user.email, instance.id)
 
 
 class OrderItem(models.Model):

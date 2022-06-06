@@ -6,7 +6,7 @@ from django.utils.text import gettext_lazy as _
 User = get_user_model()
 
 
-class ManagerRegisterApiSerializer(serializers.ModelSerializer):
+class SellerRegisterApiSerializer(serializers.ModelSerializer):
     password_confirm = serializers.CharField(min_length=6, required=True, write_only=True)
 
     class Meta:
@@ -106,6 +106,7 @@ class CreateNewPasswordSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=100, required=True)
+    # email = serializers.ReadOnlyField(source='user.email')
 
 
 class LogoutSerializer(serializers.Serializer):

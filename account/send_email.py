@@ -30,7 +30,32 @@ def send_order_notification(user, id):
     to_email = user.email
     send_mail(
         'Order Notification',
-        f'You have created an order: #{id}.\nShipping will take ~1 week.\nThanks for choosing us.',
+        f'You have created an order: #{id}.\nPlease proceed to payment so we can ship your order as soon as possible.'
+        f'\nThanks for choosing us.',
+        'orders@marketeer.com',
+        [to_email],
+        fail_silently=False,
+    )
+
+
+def send_payment_notification(user, id):
+    to_email = user.email
+    send_mail(
+        'Order Payment Success',
+        f'Payment for an order: #{id} was successful.\nShipping will take ~1 week.\nThanks for choosing us.',
+        'orders@marketeer.com',
+        [to_email],
+        fail_silently=False,
+    )
+
+
+def send_product_notification(user, id, title, price, description, category):
+    to_email = user.email
+    send_mail(
+        'New Product Notification',
+        f'You have created a product: #{id}.\nName: {title}\nPrice: {price}\n'
+        f'Description: {description}\nCategory: {category}'
+        f'\nThanks for choosing us.',
         'orders@marketeer.com',
         [to_email],
         fail_silently=False,

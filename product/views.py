@@ -74,10 +74,13 @@ class ProductViewSet(ModelViewSet):
     @action(['POST'], detail=True)
     def add_to_liked(self, request, pk):
         product = self.get_object()
-        if request.user.liked.filter(product=product).exists():
-            return Response('You have already liked this product!', status=status.HTTP_400_BAD_REQUEST)
-        Likes.objects.create(product=product, user=request.user)
-        return Response('You liked this product!', status=status.HTTP_201_CREATED)
+        if request.user != product.owner:
+            if request.user.liked.filter(product=product).exists():
+                return Response('You have already liked this product!', status=status.HTTP_400_BAD_REQUEST)
+            Likes.objects.create(product=product, user=request.user)
+            return Response('You liked this product!', status=status.HTTP_201_CREATED)
+        else:
+            return Response('Owner can\'t like own Products!', status=status.HTTP_403_FORBIDDEN)
 
     @action(['POST'], detail=True)
     def remove_from_liked(self, request, pk):
@@ -107,6 +110,7 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
+        print(self.request.user)
         return serializer.save(owner=self.request.user)
 
 

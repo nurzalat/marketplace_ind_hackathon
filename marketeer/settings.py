@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+    'paypal.standard.ipn',
 
     # my apps
     'account',
@@ -83,6 +84,10 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 WSGI_APPLICATION = 'marketeer.wsgi.application'
 
@@ -198,3 +203,5 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 
+PAYPAL_RECEIVER_EMAIL = 'billing@business.marketeer.com'
+PAYPAL_TEST = True
