@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from product.models import Product
 from .models import Order, OrderItem
@@ -32,12 +32,13 @@ class OrderSerializer(serializers.ModelSerializer):
         products = validated_data.pop('positions')
         user = self.context.get('request').user
 
-        order = Order.objects.create(user=user, status='created')
+        order = Order.objects.create(user=user, status='not_confirmed')
         for prod in products:
             product = prod['product']
             quantity = prod['quantity']
             OrderItem.objects.create(order=order, product=product, quantity=quantity)
         return order
+
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)

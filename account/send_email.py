@@ -26,11 +26,12 @@ def send_reset_passwor_email(user):
     )
 
 
-def send_order_notification(user, id):
+def send_order_notification(user, id, code):
     to_email = user.email
+    full_link = f'http://localhost:8000/api/v1/order/activate/{code}'
     send_mail(
         'Order Notification',
-        f'You have created an order: #{id}.\nPlease proceed to payment so we can ship your order as soon as possible.'
+        f'You have created an order: #{id}.\nConfirm order through the link: {full_link}.'
         f'\nThanks for choosing us.',
         'orders@marketeer.com',
         [to_email],

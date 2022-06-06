@@ -18,9 +18,9 @@ def send_reset_password_email(email):
 
 
 @app.task
-def send_order_notif(email, id):
+def send_order_notif(email, id, code):
     user = User.objects.get(email=email)
-    send_email.send_reset_passwor_email(user, id)
+    send_email.send_order_notification(user, id, code)
 
 
 @app.task

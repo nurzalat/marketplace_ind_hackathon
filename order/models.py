@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 User = get_user_model()
 
 STATUS_CHOICES = (
+    ('not_confirmed', 'Waiting for confirm'),
     ('created', 'Created'),
     ('paid', 'Open'),
     ('in_progress', 'Being processed'),
@@ -21,13 +22,19 @@ class Order(models.Model):
     user = models.ForeignKey(User, related_name='order_to_user', on_delete=models.RESTRICT)
     product = models.ManyToManyField(Product, through='OrderItem')
     created_at = models.DateTimeField(auto_now_add=True)
+    activation_code = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES)
+
+    def create_activation_code(self):
+        import uuid
+        code = str(uuid.uuid4())
+        self.activation_code = code
 
 
 @receiver(post_save, sender=Order)
 def order_post_save(sender, instance, *args, **kwargs):
     # send_order_notification(instance.user.email, instance.id)
-    send_order_notif.delay(instance.user.email, instance.id)
+    send_order_notif.delay(instance.user.email, instance.id, instance.code)
 
 
 class OrderItem(models.Model):

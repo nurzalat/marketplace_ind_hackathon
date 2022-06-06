@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from paypal.standard.forms import PayPalPaymentsForm
-from rest_framework import generics, permissions, status as st
+from rest_framework import generics, permissions, status as st, status
 from rest_framework.decorators import permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -19,6 +19,18 @@ from .models import Order
 class CreateOrderView(generics.CreateAPIView):
     serializer_class = serializers.OrderSerializer
     permission_classes = (permissions.IsAuthenticated, )
+
+
+class OrderActivationView(APIView):
+    def get(self, request, activation_code):
+        try:
+            order = Order.objects.get(activation_code=activation_code)
+            order.activation_code = ''
+            order.status = 'created'
+            order.save()
+            return Response({'msg': 'Order confirmed'}, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response({'msg': 'Link expired'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserOrderList(APIView):
